@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>無料HP制作ヒアリングシート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+/* Layout: one narrow column like a site-survey clipboard; numbered rows ①–㉓ grouped in four parts with a sticky progress bar */
+:root {
+  --bg: #eef0f2;
+  --paper: #ffffff;
+  --ink: #16202e;
+  --muted: #5b6676;
+  --line: #d5dae1;
+  --accent: #1d4ed8;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3eafc;
+  --tape: #f5c518;
+  --danger: #b42318;
+  --display: "Dela Gothic One", "Hiragino Kaku Gothic StdN", "Yu Gothic", sans-serif;
+  --body: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --paper: #18202b; --ink: #e8ecf2; --muted: #9aa6b6; --line: #2c3746;
+    --accent: #7aa2ff; --accent-ink: #0f141b; --accent-soft: #1f2c47; --tape: #e9bb12; --danger: #ff8a7a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --paper: #18202b; --ink: #e8ecf2; --muted: #9aa6b6; --line: #2c3746;
+  --accent: #7aa2ff; --accent-ink: #0f141b; --accent-soft: #1f2c47; --tape: #e9bb12; --danger: #ff8a7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.75; }
+.wrap { max-width: 680px; margin: 0 auto; padding-inline: 16px; padding-block: 0 64px; }
+
+header.hero { padding-block: 40px 28px; display: grid; gap: 14px; }
+.event {
+  display: inline-flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-self: start;
+  background: var(--tape); color: #16202e; font-weight: 700; font-size: 14px;
+  padding: 4px 12px; border-radius: 4px; letter-spacing: .04em;
+}
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 8vw, 44px); line-height: 1.3; margin: 0; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+.lead { margin: 0; color: var(--muted); max-width: 36em; }
+.steps { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; font-size: 15px; }
+.steps b { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1; }
+
+.progress {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); padding-block: 10px; display: grid; gap: 6px;
+}
+.progress .row { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+
+form { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+.q { padding: 22px 20px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.q:first-child { border-top: 0; }
+.q label.t, .q .t { display: grid; grid-template-columns: 2em 1fr; gap: 4px; font-weight: 700; font-size: 17px; line-height: 1.5; }
+.num { color: var(--accent); font-variant-numeric: tabular-nums; }
+.req { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; color: var(--danger); border: 1px solid currentColor; border-radius: 3px; padding: 0 5px; vertical-align: 2px; letter-spacing: .05em; }
+.hint { margin: -4px 0 0 2em; font-size: 13px; color: var(--muted); }
+.field { margin-left: 2em; display: grid; gap: 8px; min-width: 0; }
+input[type=text], input[type=url], textarea {
+  width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+}
+textarea { min-height: 88px; resize: vertical; line-height: 1.6; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, .chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.chip span {
+  display: inline-block; padding: 7px 14px; border: 1px solid var(--line); border-radius: 999px;
+  font-size: 15px; background: var(--paper); cursor: pointer; transition: background .15s, border-color .15s;
+}
+.chip input:checked + span { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.strengths { display: grid; gap: 8px; }
+.strengths div { display: grid; grid-template-columns: 1.6em 1fr; align-items: center; gap: 6px; }
+.strengths b { color: var(--muted); font-weight: 500; font-size: 14px; text-align: center; }
+
+.submit { padding: 22px 20px 26px; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.btn {
+  font: inherit; font-weight: 700; font-size: 17px; border: 0; border-radius: 8px; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); padding: 14px 18px; width: 100%;
+}
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); font-size: 15px; padding: 10px 14px; }
+.err { color: var(--danger); font-size: 14px; margin: 0; }
+
+.result { margin-top: 24px; background: var(--paper); border: 2px solid var(--accent); border-radius: 10px; padding: 22px 20px; display: grid; gap: 12px; }
+.result h2 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; }
+.result > div { display: grid; gap: 12px; }
+.result p { margin: 0; color: var(--muted); font-size: 14px; }
+.result textarea { min-height: 280px; font-size: 14px; }
+.result .acts { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.toast { font-size: 14px; color: var(--accent); font-weight: 700; min-height: 1.5em; margin: 0; }
+
+footer { margin-top: 28px; font-size: 13px; color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.sec { padding: 26px 20px 6px; border-top: 1px solid var(--line); display: grid; gap: 4px; background: var(--accent-soft); }
+.sec:first-child { border-top: 0; border-radius: 10px 10px 0 0; }
+.sec h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 20px; letter-spacing: .02em; }
+.sec p { margin: 0 0 14px; font-size: 13px; color: var(--muted); }
+.sec + .q { border-top: 0; }
+.contact-grid { display: grid; gap: 12px; }
+.contact-grid label { display: grid; gap: 4px; font-size: 14px; font-weight: 700; }
+input[type=tel], input[type=email] { width: 100%; font: inherit; font-size: 16px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="hero">
+    <span class="event"><span>1社ずつ、Zoomでご説明します</span></span>
+    <h1>あなたの会社のホームページ、<em>無料</em>でお作りします。</h1>
+    <p class="lead">下の質問に答えていただくだけで、御社に合ったホームページの見本をお作りし、Zoomで1対1でご説明します。わからない項目は空欄のままで大丈夫です。所要時間は7分ほどです。</p>
+    <ol class="steps">
+      <li><b>1</b><span>このページで質問に答える</span></li>
+      <li><b>2</b><span>いちばん下の「送信する」を押す</span></li>
+      <li><b>3</b><span>内容を確認して、Zoomの日程をこちらからご連絡します（30分ほど）</span></li>
+    </ol>
+  </header>
+
+  <div class="progress" aria-live="polite">
+    <div class="row"><span>回答の進み具合</span><span id="count">0 / 0</span></div>
+    <div class="bar"><span id="bar"></span></div>
+  </div>
+
+  <form id="f" novalidate>
+    <div class="sec"><h2>ご連絡先</h2><p>Zoomの日程のご連絡と、HPの見本をお送りする先です。</p></div>
+    <div class="q" data-label="お名前・ご連絡先" data-required="c-name c-email">
+      <div class="t"><span class="num">●</span><span>お名前・ご連絡先</span></div>
+      <div class="field contact-grid">
+        <label for="c-name">お名前<span class="req">必須</span><input type="text" id="c-name" name="c-name" autocomplete="name" placeholder="例）山田 太郎" data-prefix="お名前："></label>
+        <label for="c-tel">電話番号<input type="tel" id="c-tel" name="c-tel" autocomplete="tel" inputmode="tel" placeholder="例）090-1234-5678" data-prefix="電話："></label>
+        <label for="c-email">メールアドレス<span class="req">必須</span><input type="email" id="c-email" name="c-email" autocomplete="email" inputmode="email" placeholder="例）yamada@example.com" data-prefix="メール："></label>
+        <label for="c-line">LINEの表示名<input type="text" id="c-line" name="c-line" placeholder="例）やまだ（〇〇塗装）" data-prefix="LINE名："></label>
+      </div>
+    </div>
+
+    <div class="q" data-label="Zoomのご希望日時">
+      <div class="t"><span class="num">●</span><span>Zoomでお話しできる時間帯</span></div>
+      <p class="hint">いくつでも選べます。決まっていれば下の欄に候補日を書いてください</p>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="zt" value="平日の昼"><span>平日の昼</span></label>
+          <label class="chip"><input type="checkbox" name="zt" value="平日の夕方"><span>平日の夕方</span></label>
+          <label class="chip"><input type="checkbox" name="zt" value="平日の夜（19時以降）"><span>平日の夜（19時以降）</span></label>
+          <label class="chip"><input type="checkbox" name="zt" value="土日"><span>土日</span></label>
+        </div>
+        <input type="text" id="zt-x" name="zt-x" aria-label="Zoomの候補日" placeholder="例）10/8（水）20時〜、10/11（土）午前" data-prefix="候補日：">
+      </div>
+    </div>
+
+    <div class="sec"><h2>会社について</h2><p>HPの文章のもとになります。話し言葉のままで大丈夫です。</p></div>
+    <div class="q" data-label="①会社名・屋号" data-required="q1">
+      <label class="t" for="q1"><span class="num">①</span><span>会社名・屋号<span class="req">必須</span></span></label>
+      <div class="field"><input type="text" id="q1" name="q1" autocomplete="organization" placeholder="例）株式会社〇〇 / 〇〇工業 / 〇〇造園"></div>
+    </div>
+    <div class="q" data-label="②主な仕事内容" data-required="q2">
+      <label class="t" for="q2"><span class="num">②</span><span>主な仕事内容<span class="req">必須</span></span></label>
+      <p class="hint">細かい工事の種類まで書いていただけると、HPに載せる内容が充実します</p>
+      <div class="field"><textarea id="q2" name="q2" placeholder="例）外壁・屋根塗装、防水工事&#10;例）プラント工事（足場・配管）、解体工事&#10;例）剪定・伐採・草刈り"></textarea></div>
+    </div>
+    <div class="q" data-label="③対応エリア">
+      <label class="t" for="q3"><span class="num">③</span><span>対応エリア</span></label>
+      <div class="field"><input type="text" id="q3" name="q3" placeholder="例）〇〇市・〇〇市・〇〇町"></div>
+    </div>
+    <div class="q" data-label="④一番増やしたい仕事">
+      <label class="t" for="q4"><span class="num">④</span><span>一番増やしたい仕事</span></label>
+      <p class="hint">利益が出やすい仕事、得意な仕事など</p>
+      <div class="field"><input type="text" id="q4" name="q4" placeholder="例）戸建ての外壁塗装 / 元請けからの継続案件"></div>
+    </div>
+    <div class="q" data-label="⑤増やしたいお客様">
+      <div class="t"><span class="num">⑤</span><span>どんなお客様を増やしたいですか？</span></div>
+      <p class="hint">いくつでも選べます</p>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="q5" value="個人のお客様"><span>個人のお客様</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="法人"><span>法人</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="不動産会社"><span>不動産会社</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="管理会社"><span>管理会社</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="ハウスメーカー"><span>ハウスメーカー</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="元請け・工務店"><span>元請け・工務店</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="下請け・協力会社"><span>下請け・協力会社</span></label>
+          <label class="chip"><input type="checkbox" name="q5" value="従業員（求人）"><span>従業員（求人）</span></label>
+        </div>
+        <input type="text" id="q5x" name="q5x" aria-label="その他のお客様" placeholder="その他・補足があれば">
+      </div>
+    </div>
+    <div class="q" data-label="⑥自社の強み">
+      <div class="t"><span class="num">⑥</span><span>自社の強みを3つほど</span></div>
+      <p class="hint">社名の由来や、会社で大事にしている言葉・想いもぜひ書いてください。HPの一番の見どころになります</p>
+      <div class="field strengths">
+        <div><b>1</b><input type="text" id="q6a" name="q6a" aria-label="強み1" placeholder="例）見積もり当日対応"></div>
+        <div><b>2</b><input type="text" id="q6b" name="q6b" aria-label="強み2" placeholder="例）自社職人のみで施工"></div>
+        <div><b>3</b><input type="text" id="q6c" name="q6c" aria-label="強み3" placeholder="例）施工後10年保証"></div>
+        <textarea id="q6x" name="q6x" aria-label="社名の由来・大事にしている言葉" placeholder="社名の由来・大事にしている言葉・想いなど（自由に）"></textarea>
+      </div>
+    </div>
+
+    <div class="sec"><h2>HPに載せる内容</h2><p>わからないものは「おまかせ」「空欄」で大丈夫です。</p></div>
+    <div class="q" data-label="⑦施工写真・仕事の写真">
+      <div class="t"><span class="num">⑦</span><span>施工写真・仕事の写真はありますか？</span></div>
+      <p class="hint">ない場合も大丈夫です。スマホで撮った写真で作れます</p>
+      <div class="field chips">
+        <label class="chip"><input type="radio" name="q7" value="たくさんある"><span>たくさんある</span></label>
+        <label class="chip"><input type="radio" name="q7" value="少しある"><span>少しある</span></label>
+        <label class="chip"><input type="radio" name="q7" value="ない（これから撮れる）"><span>ない（これから撮れる）</span></label>
+        <label class="chip"><input type="radio" name="q7" value="ない"><span>ない</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="⑧料金の掲載">
+      <div class="t"><span class="num">⑧</span><span>料金はHPに載せたいですか？</span></div>
+      <div class="field chips">
+        <label class="chip"><input type="radio" name="q8" value="載せたい"><span>載せたい</span></label>
+        <label class="chip"><input type="radio" name="q8" value="目安だけ載せたい"><span>目安だけ載せたい</span></label>
+        <label class="chip"><input type="radio" name="q8" value="載せたくない"><span>載せたくない</span></label>
+        <label class="chip"><input type="radio" name="q8" value="相談したい"><span>相談したい</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="⑨求人情報の掲載">
+      <div class="t"><span class="num">⑨</span><span>求人情報も載せたいですか？</span></div>
+      <div class="field chips">
+        <label class="chip"><input type="radio" name="q9" value="ぜひ載せたい（一番の目的）"><span>ぜひ載せたい（一番の目的）</span></label>
+        <label class="chip"><input type="radio" name="q9" value="載せたい"><span>載せたい</span></label>
+        <label class="chip"><input type="radio" name="q9" value="今は不要"><span>今は不要</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="⑩欲しい問い合わせ方法">
+      <div class="t"><span class="num">⑩</span><span>どこから問い合わせが欲しいですか？</span></div>
+      <p class="hint">いくつでも選べます。メインのものは下の欄に書いてください</p>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="q10" value="電話"><span>電話</span></label>
+          <label class="chip"><input type="checkbox" name="q10" value="LINE"><span>LINE</span></label>
+          <label class="chip"><input type="checkbox" name="q10" value="問い合わせフォーム"><span>問い合わせフォーム</span></label>
+          <label class="chip"><input type="checkbox" name="q10" value="メール"><span>メール</span></label>
+        </div>
+        <input type="text" id="q10x" name="q10x" aria-label="メインの問い合わせ方法" placeholder="例）LINEがメイン、サブでフォーム" data-prefix="補足：">
+      </div>
+    </div>
+    <div class="q" data-label="⑪HPの雰囲気">
+      <div class="t"><span class="num">⑪</span><span>希望するHPの雰囲気</span></div>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="radio" name="q11" value="カッコいい"><span>カッコいい</span></label>
+          <label class="chip"><input type="radio" name="q11" value="シンプル"><span>シンプル</span></label>
+          <label class="chip"><input type="radio" name="q11" value="親しみやすい"><span>親しみやすい</span></label>
+          <label class="chip"><input type="radio" name="q11" value="高級感"><span>高級感</span></label>
+          <label class="chip"><input type="radio" name="q11" value="和風"><span>和風</span></label>
+          <label class="chip"><input type="radio" name="q11" value="おまかせ"><span>おまかせ</span></label>
+        </div>
+        <input type="text" id="q11x" name="q11x" aria-label="雰囲気の補足" placeholder="補足があれば（例：黒っぽい色で重厚に）" data-prefix="補足：">
+      </div>
+    </div>
+    <div class="q" data-label="⑫参考にしたいHP">
+      <label class="t" for="q12"><span class="num">⑫</span><span>参考にしたいHPがあればURL</span></label>
+      <p class="hint">なければ空欄でOK。会社名だけでも大丈夫です</p>
+      <div class="field"><textarea id="q12" name="q12" placeholder="https://… 複数あれば改行して貼ってください"></textarea></div>
+    </div>
+    <div class="q" data-label="⑬Instagram・Googleマップ等">
+      <div class="t"><span class="num">⑬</span><span>Instagram・Googleマップ等はありますか？</span></div>
+      <p class="hint">URLの出し方がわからなければ「ある」を選ぶだけでOK。後で一緒に確認します</p>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="q13" value="Instagramある"><span>Instagram</span></label>
+          <label class="chip"><input type="checkbox" name="q13" value="Googleマップに載っている"><span>Googleマップ</span></label>
+          <label class="chip"><input type="checkbox" name="q13" value="Facebookある"><span>Facebook</span></label>
+          <label class="chip"><input type="checkbox" name="q13" value="公式LINEある"><span>公式LINE</span></label>
+          <label class="chip"><input type="checkbox" name="q13" value="どれもない"><span>どれもない</span></label>
+        </div>
+        <textarea id="q13x" name="q13x" aria-label="URL" placeholder="わかればURLを貼ってください（任意）"></textarea>
+      </div>
+    </div>
+    <div class="q" data-label="⑭会社ロゴ">
+      <div class="t"><span class="num">⑭</span><span>会社ロゴはありますか？</span></div>
+      <div class="field chips">
+        <label class="chip"><input type="radio" name="q14" value="ある"><span>ある</span></label>
+        <label class="chip"><input type="radio" name="q14" value="ない（作りたい）"><span>ない（作りたい）</span></label>
+        <label class="chip"><input type="radio" name="q14" value="ない（なくてOK）"><span>ない（なくてOK）</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="⑮HPで一番実現したいこと" data-required="q15">
+      <label class="t" for="q15"><span class="num">⑮</span><span>HPで一番実現したいこと<span class="req">必須</span></span></label>
+      <div class="field"><textarea id="q15" name="q15" placeholder="例）元請けに頼らず、地元のお客様から直接依頼が来るようにしたい&#10;例）若い職人に応募してほしい"></textarea></div>
+    </div>
+
+    <div class="sec"><h2>今の状況について</h2><p>御社に合った集客の方法をご提案するための質問です。だいたいで大丈夫です。</p></div>
+    <div class="q" data-label="⑯今の集客・求人の方法">
+      <div class="t"><span class="num">⑯</span><span>今、仕事や人をどうやって集めていますか？</span></div>
+      <p class="hint">いくつでも選べます</p>
+      <div class="field chips">
+        <label class="chip"><input type="checkbox" name="q16" value="紹介・口コミ"><span>紹介・口コミ</span></label>
+        <label class="chip"><input type="checkbox" name="q16" value="元請けからの依頼"><span>元請けからの依頼</span></label>
+        <label class="chip"><input type="checkbox" name="q16" value="チラシ・看板"><span>チラシ・看板</span></label>
+        <label class="chip"><input type="checkbox" name="q16" value="SNS"><span>SNS</span></label>
+        <label class="chip"><input type="checkbox" name="q16" value="ハローワーク"><span>ハローワーク</span></label>
+        <label class="chip"><input type="checkbox" name="q16" value="求人誌・求人サイト"><span>求人誌・求人サイト</span></label>
+        <label class="chip"><input type="checkbox" name="q16" value="特に何もしていない"><span>特に何もしていない</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="⑰この1年の問い合わせ・応募">
+      <label class="t" for="q17"><span class="num">⑰</span><span>この1年で、新しいお客様からの問い合わせや求人の応募はどのくらいありましたか？</span></label>
+      <div class="field"><input type="text" id="q17" name="q17" placeholder="例）問い合わせ月2〜3件、求人の応募は0人"></div>
+    </div>
+    <div class="q" data-label="⑱広告・求人にかけている費用（年間）">
+      <div class="t"><span class="num">⑱</span><span>広告や求人に、年間どのくらい費用をかけていますか？</span></div>
+      <div class="field chips">
+        <label class="chip"><input type="radio" name="q18" value="0円"><span>0円</span></label>
+        <label class="chip"><input type="radio" name="q18" value="10万円未満"><span>10万円未満</span></label>
+        <label class="chip"><input type="radio" name="q18" value="10〜30万円"><span>10〜30万円</span></label>
+        <label class="chip"><input type="radio" name="q18" value="30〜50万円"><span>30〜50万円</span></label>
+        <label class="chip"><input type="radio" name="q18" value="50万円以上"><span>50万円以上</span></label>
+        <label class="chip"><input type="radio" name="q18" value="わからない"><span>わからない</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="⑲仕事が1件・人が1人増えたときの変化">
+      <label class="t" for="q19"><span class="num">⑲</span><span>仕事が1件増えたら（または1人採用できたら）、どのくらい売上が変わりますか？</span></label>
+      <p class="hint">だいたいの金額で大丈夫です</p>
+      <div class="field"><input type="text" id="q19" name="q19" placeholder="例）1件30万円くらい / 1人入れば月50万円くらい"></div>
+    </div>
+    <div class="q" data-label="⑳HPを公開したい時期">
+      <div class="t"><span class="num">⑳</span><span>いつ頃までにHPを公開したいですか？</span></div>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="radio" name="q20" value="すぐにでも"><span>すぐにでも</span></label>
+          <label class="chip"><input type="radio" name="q20" value="1か月以内"><span>1か月以内</span></label>
+          <label class="chip"><input type="radio" name="q20" value="3か月以内"><span>3か月以内</span></label>
+          <label class="chip"><input type="radio" name="q20" value="特に決めていない"><span>特に決めていない</span></label>
+        </div>
+        <input type="text" id="q20x" name="q20x" aria-label="時期の理由" placeholder="理由があれば（例：春の繁忙期までに人がほしい）" data-prefix="理由：">
+      </div>
+    </div>
+    <div class="q" data-label="㉑HPのことを決める方">
+      <div class="t"><span class="num">㉑</span><span>HPのことを決めるのはどなたですか？</span></div>
+      <div class="field chips">
+        <label class="chip"><input type="radio" name="q21" value="自分ひとりで決める"><span>自分ひとりで決める</span></label>
+        <label class="chip"><input type="radio" name="q21" value="家族と相談して決める"><span>家族と相談して決める</span></label>
+        <label class="chip"><input type="radio" name="q21" value="社内で相談して決める"><span>社内で相談して決める</span></label>
+      </div>
+    </div>
+    <div class="q" data-label="㉒これまでのHP">
+      <div class="t"><span class="num">㉒</span><span>これまでにHPを作ったことはありますか？</span></div>
+      <p class="hint">いくつでも選べます</p>
+      <div class="field">
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="q22" value="今もHPがある"><span>今もHPがある</span></label>
+          <label class="chip"><input type="checkbox" name="q22" value="前に作ったがやめた"><span>前に作ったがやめた</span></label>
+          <label class="chip"><input type="checkbox" name="q22" value="業者から営業を受けたことがある"><span>業者から営業を受けたことがある</span></label>
+          <label class="chip"><input type="checkbox" name="q22" value="作ったことはない"><span>作ったことはない</span></label>
+        </div>
+        <input type="text" id="q22x" name="q22x" aria-label="これまでのHPで困ったこと" placeholder="困ったことがあれば（例：高いのに問い合わせが来なかった）" data-prefix="困ったこと：">
+      </div>
+    </div>
+    <div class="q" data-label="㉓HPについての不安・質問">
+      <label class="t" for="q23"><span class="num">㉓</span><span>HPについて、不安なことや聞いてみたいことはありますか？</span></label>
+      <div class="field"><textarea id="q23" name="q23" placeholder="例）更新が面倒そう / 本当に問い合わせが来るのか知りたい"></textarea></div>
+    </div>
+
+    <div class="submit">
+      <input type="checkbox" name="botcheck" id="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+      <p class="err" id="err" hidden></p>
+      <button type="submit" class="btn" id="send">送信する</button>
+    </div>
+  </form>
+
+  <section class="result" id="result" hidden aria-live="polite">
+    <div id="ok" hidden>
+      <h2>送信しました</h2>
+      <p>ご回答ありがとうございます。内容を確認して、Zoomの日程をご連絡します。</p>
+    </div>
+    <div id="ng" hidden>
+      <h2>送信できませんでした</h2>
+      <p>通信がうまくいきませんでした。もう一度「送信する」を押すか、下の文章をコピーして、このページを受け取ったLINE・DMに貼り付けて送ってください。</p>
+      <textarea id="out" readonly aria-label="まとめた回答"></textarea>
+      <div class="acts">
+        <button type="button" class="btn" id="copy">文章をコピーする</button>
+        <button type="button" class="btn ghost" id="edit">回答を直す</button>
+      </div>
+      <p class="toast" id="toast"></p>
+    </div>
+  </section>
+
+  <footer>入力途中の内容はこの端末にだけ一時保存されます。送信した内容は、HP制作とご連絡のためだけに使います。</footer>
+</div>
+
+<script>
+(function () {
+  // Web3Forms のアクセスキー（届いたメールに書かれているもの）をここに貼る
+  var ACCESS_KEY = "c6cdc19d-eb7f-44a8-9df1-c765b2b2e3d0";
+  var KEY = "hp-hearing-draft-v2";
+  var f = document.getElementById("f");
+  var qs = Array.prototype.slice.call(f.querySelectorAll(".q"));
+
+  // Each question block answers with its checked choices plus any typed text, in page order.
+  function answerOf(q) {
+    var parts = [], picks = [];
+    q.querySelectorAll("input, textarea").forEach(function (el) {
+      if (el.type === "checkbox" || el.type === "radio") { if (el.checked) picks.push(el.value); return; }
+      var v = el.value.trim();
+      if (!v) return;
+      if (picks.length) { parts.push(picks.join("、")); picks = []; }
+      parts.push((el.dataset.prefix || "") + v);
+    });
+    if (picks.length) parts.push(picks.join("、"));
+    return parts.join("\n");
+  }
+  function progress() {
+    var n = qs.filter(function (q) { return answerOf(q); }).length;
+    document.getElementById("count").textContent = n + " / " + qs.length;
+    document.getElementById("bar").style.width = (n / qs.length * 100) + "%";
+  }
+  function save() {
+    var d = {};
+    Array.prototype.forEach.call(f.elements, function (el) {
+      if (!el.name) return;
+      if (el.type === "checkbox" || el.type === "radio") { if (el.checked) (d[el.name] = d[el.name] || []).push(el.value); }
+      else d[el.name] = el.value;
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {}
+  }
+  function load() {
+    var d;
+    try { d = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { d = null; }
+    if (!d) return;
+    Array.prototype.forEach.call(f.elements, function (el) {
+      if (!el.name || !(el.name in d)) return;
+      if (el.type === "checkbox" || el.type === "radio") el.checked = d[el.name].indexOf(el.value) !== -1;
+      else el.value = d[el.name];
+    });
+  }
+
+  load(); progress();
+  f.addEventListener("input", function () { progress(); save(); });
+  f.addEventListener("change", function () { progress(); save(); });
+
+  f.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var err = document.getElementById("err");
+    var missing = [];
+    qs.forEach(function (q) {
+      (q.dataset.required || "").split(" ").filter(Boolean).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el.value.trim()) return;
+        var lab = el.closest("label.t, label") ;
+        var name = lab && lab.htmlFor === id && !lab.classList.contains("t") ? lab.firstChild.textContent : q.dataset.label;
+        missing.push({ el: el, name: name });
+      });
+    });
+    if (missing.length) {
+      err.textContent = missing.map(function (m) { return m.name; }).join("・") + " を入力してください。";
+      err.hidden = false;
+      missing[0].el.focus();
+      return;
+    }
+    err.hidden = true;
+    var lines = ["【無料HP制作 お申し込み・ヒアリングシート】", ""];
+    qs.forEach(function (q) {
+      lines.push("■" + q.dataset.label);
+      lines.push(answerOf(q) || "（未回答）");
+      lines.push("");
+    });
+    var text = lines.join("\n").trim();
+    document.getElementById("out").value = text;
+    var send = document.getElementById("send");
+    send.disabled = true; send.textContent = "送信中…";
+    var company = document.getElementById("q1").value.trim(), name = document.getElementById("c-name").value.trim();
+    fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        access_key: ACCESS_KEY,
+        subject: "【HP申込】" + company + "（" + name + "様）",
+        from_name: "無料HP制作 申し込みフォーム",
+        email: document.getElementById("c-email").value.trim(),
+        botcheck: document.getElementById("botcheck").checked,
+        message: text
+      })
+    }).then(function (res) { return res.json(); }).then(function (data) {
+      showResult(!!data.success);
+    }).catch(function () { showResult(false); });
+  });
+
+  function showResult(ok) {
+    var send = document.getElementById("send");
+    send.disabled = false; send.textContent = "送信する";
+    document.getElementById("ok").hidden = !ok;
+    document.getElementById("ng").hidden = ok;
+    if (ok) { f.hidden = true; document.querySelector(".progress").hidden = true; try { localStorage.removeItem(KEY); } catch (e) {} }
+    var r = document.getElementById("result");
+    r.hidden = false;
+    r.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var out = document.getElementById("out"), toast = document.getElementById("toast");
+    function fallback() {
+      out.focus(); out.select();
+      toast.textContent = "文章を選択しました。長押し（または右クリック）でコピーしてください。";
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(out.value).then(function () {
+        toast.textContent = "コピーしました。このページを受け取ったLINE・DMに貼り付けて送ってください。";
+      }, fallback);
+    } else fallback();
+  });
+
+  document.getElementById("edit").addEventListener("click", function () {
+    document.getElementById("result").hidden = true;
+    document.getElementById("c-name").focus();
+  });
+})();
+</script>
+
+</body>
+</html>
